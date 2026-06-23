@@ -1,0 +1,98 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR José Luis Castro
+# This file is distributed under the same license as the Solera Update package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Solera Update\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-23 15:37+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: extension.js:87 extension.js:140
+msgid "Check for updates"
+msgstr ""
+
+#: extension.js:139
+msgid "Solera is up to date"
+msgstr ""
+
+#: extension.js:143
+msgid "Checking for updates…"
+msgstr ""
+
+#: extension.js:144
+msgid "Checking…"
+msgstr ""
+
+#: extension.js:147
+msgid "Update available"
+msgstr ""
+
+#: extension.js:148 extension.js:334
+msgid "Update now"
+msgstr ""
+
+#: extension.js:153
+msgid "Deploying update…"
+msgstr ""
+
+#: extension.js:154
+msgid "Deploying…"
+msgstr ""
+
+#: extension.js:157
+msgid "Restart to apply the update"
+msgstr ""
+
+#: extension.js:158 extension.js:346
+msgid "Restart now"
+msgstr ""
+
+#: extension.js:163
+msgid "Could not check (no network?)"
+msgstr ""
+
+#: extension.js:164
+msgid "Retry"
+msgstr ""
+
+#: extension.js:168
+msgid "Installed"
+msgstr ""
+
+#: extension.js:246
+msgid "Could not start the update:"
+msgstr ""
+
+#: extension.js:264
+msgid "The update did not complete."
+msgstr ""
+
+#: extension.js:300
+msgid "Could not restart:"
+msgstr ""
+
+#: extension.js:330
+msgid "Solera update available"
+msgstr ""
+
+#: extension.js:331
+msgid "A new system image is ready to deploy."
+msgstr ""
+
+#: extension.js:342
+msgid "Update ready"
+msgstr ""
+
+#: extension.js:343
+msgid "Restart to boot into the new version of Solera."
+msgstr ""

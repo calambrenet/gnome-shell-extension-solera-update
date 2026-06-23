@@ -1,0 +1,76 @@
+# Spanish translation for the Solera Update GNOME Shell extension.
+# Copyright (C) 2026 José Luis Castro
+# This file is distributed under the same license as the extension.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Solera Update\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-06-23\n"
+"Last-Translator: José Luis Castro <info@soleralinux.org>\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Check for updates"
+msgstr "Buscar actualizaciones"
+
+msgid "Solera is up to date"
+msgstr "Solera está al día"
+
+msgid "Checking for updates…"
+msgstr "Comprobando actualizaciones…"
+
+msgid "Checking…"
+msgstr "Comprobando…"
+
+msgid "Update available"
+msgstr "Actualización disponible"
+
+msgid "Update now"
+msgstr "Actualizar ahora"
+
+msgid "Deploying update…"
+msgstr "Desplegando actualización…"
+
+msgid "Deploying…"
+msgstr "Desplegando…"
+
+msgid "Restart to apply the update"
+msgstr "Reinicia para aplicar la actualización"
+
+msgid "Restart now"
+msgstr "Reiniciar ahora"
+
+msgid "Could not check (no network?)"
+msgstr "No se pudo comprobar (¿sin red?)"
+
+msgid "Retry"
+msgstr "Reintentar"
+
+msgid "Installed"
+msgstr "Instalada"
+
+msgid "Could not start the update:"
+msgstr "No se pudo lanzar la actualización:"
+
+msgid "The update did not complete."
+msgstr "La actualización no se completó."
+
+msgid "Could not restart:"
+msgstr "No se pudo reiniciar:"
+
+msgid "Solera update available"
+msgstr "Actualización de Solera disponible"
+
+msgid "A new system image is ready to deploy."
+msgstr "Hay una nueva imagen del sistema lista para desplegar."
+
+msgid "Update ready"
+msgstr "Actualización lista"
+
+msgid "Restart to boot into the new version of Solera."
+msgstr "Reinicia para arrancar con la nueva versión de Solera."

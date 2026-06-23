@@ -1,0 +1,9 @@
+{
+  "uuid": "solera-update@soleralinux.org",
+  "name": "Solera Update",
+  "description": "Periodically checks for a new Solera (arkdep) system image and lets you apply it from a top-bar indicator, animating during deployment and prompting to reboot when done.",
+  "shell-version": ["48", "49", "50"],
+  "url": "https://github.com/calambrenet/gnome-shell-extension-solera-update",
+  "gettext-domain": "solera-update@soleralinux.org",
+  "version": 1
+}

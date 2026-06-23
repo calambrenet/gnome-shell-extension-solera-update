@@ -1,0 +1,8 @@
+# artefactos de empaquetado / pruebas
+*.zip
+*.pkg.tar.zst
+*.tar.gz
+src/
+pkg/
+# traducciones compiladas (se generan desde po/ en install.sh / PKGBUILD)
+locale/

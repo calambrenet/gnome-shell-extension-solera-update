@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# solera-gui-update — punto de entrada privilegiado del indicador gráfico.
+#
+# Se ejecuta SIEMPRE vía `pkexec` (la extensión nunca corre con root ni
+# captura la contraseña; polkit muestra su diálogo nativo). Fija
+# ARKDEP_CONFIRM=1 para saltarse el prompt interactivo de arkdep
+# ("Proceed with deployment? [Y/n]"), ya que la confirmación del usuario
+# se hace antes en la UI. No reimplementa nada: delega en `solera update`.
+#
+# pkexec limpia el entorno, por eso la variable se fija aquí dentro y no
+# se pasa por env desde la extensión.
+
+set -euo pipefail
+
+export ARKDEP_CONFIRM=1
+exec /usr/bin/solera update "$@"
