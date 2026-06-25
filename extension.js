@@ -2,10 +2,11 @@
 //
 // extension.js — indicador de actualizaciones de Solera en la barra superior.
 //
-// UI (GJS) que: comprueba updates al login y cada 6 h, avisa con una
-// notificación, lanza el despliegue real vía `pkexec` (diálogo polkit
-// nativo — la extensión NUNCA toca la contraseña), anima el icono mientras
-// despliega y, al terminar, ofrece reiniciar.
+// UI (GJS) que: comprueba updates cuando hay conexión (no al instante del
+// login: NetworkManager-wait-online está enmascarado y la red sube tarde) y
+// cada 6 h, avisa con una notificación, lanza el despliegue real vía `pkexec`
+// (diálogo polkit nativo — la extensión NUNCA toca la contraseña), anima el
+// icono mientras despliega y, al terminar, ofrece reiniciar.
 //
 // El trabajo privilegiado vive fuera de gnome-shell, en el wrapper
 // lib/solera-gui-update (que fija ARKDEP_CONFIRM=1 y exec'ea
@@ -26,8 +27,12 @@ import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import {UpdateChecker} from './updateChecker.js';
 
 const CHECK_INTERVAL_SECONDS = 6 * 60 * 60; // cada 6 h
-const FIRST_CHECK_DELAY_SECONDS = 15;       // tras el login, sin agobiar el arranque
+const FIRST_CHECK_DELAY_SECONDS = 15;       // margen tras tener red, sin agobiar el arranque
 const SPIN_INTERVAL_MS = 60;
+// Si un chequeo falla por red (conectividad reportada pero el GET no sale:
+// portal cautivo, DNS aún frío, repo caído un momento…) reintentamos con este
+// backoff en vez de quedarnos en ERROR hasta el siguiente tick de 6 h.
+const RETRY_BACKOFF_SECONDS = [30, 60, 120, 300, 600];
 
 const State = {
     IDLE: 'idle',                   // al día
@@ -227,6 +232,8 @@ class SoleraIndicator extends PanelMenu.Button {
             this._applyState(State.ERROR);
         else
             this._applyState(State.IDLE);
+        // La extensión decide si reintenta (fallo de red) o resetea el backoff.
+        this._extension._onCheckFinished(res);
     }
 
     _startUpdate() {
@@ -369,25 +376,106 @@ export default class SoleraUpdateExtension extends Extension {
         this._indicator = new SoleraIndicator(this);
         Main.panel.addToStatusArea(this.uuid, this._indicator);
 
-        // primera comprobación tras el login, luego periódica
-        this._firstId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
-            FIRST_CHECK_DELAY_SECONDS, () => {
-                this._firstId = 0;
-                this._indicator.checkNow();
-                return GLib.SOURCE_REMOVE;
-            });
+        this._firstId = 0;
+        this._retryId = 0;
+        this._retryIndex = 0;
+        this._netChangedId = 0;
+        this._netMonitor = Gio.NetworkMonitor.get_default();
+
+        // Primera comprobación: solo cuando la red esté de verdad arriba. Con
+        // NetworkManager-wait-online enmascarado, al login todavía no hay ruta;
+        // un retardo fijo es una adivinanza, así que esperamos a conectividad
+        // FULL (no solo `network_available`, que da true con link-local o
+        // portal cautivo y nos haría fallar el GET al repo).
+        this._scheduleFirstCheck();
+
+        // Tick periódico cada 6 h (pasa por checkNow → _onCheckFinished, así
+        // que también se beneficia del reintento si justo no hay red).
         this._periodId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
             CHECK_INTERVAL_SECONDS, () => {
-                this._indicator.checkNow();
+                this._indicator?.checkNow();
                 return GLib.SOURCE_CONTINUE;
             });
     }
 
+    _hasFullConnectivity() {
+        return this._netMonitor?.connectivity === Gio.NetworkConnectivity.FULL;
+    }
+
+    _scheduleFirstCheck() {
+        if (this._hasFullConnectivity()) {
+            this._armFirstCheck();
+            return;
+        }
+        // Aún sin red: chequeamos en cuanto suba la conectividad y nos
+        // desconectamos (el resto lo cubre el tick periódico).
+        log('[solera-update] no connectivity yet, waiting for network');
+        this._netChangedId = this._netMonitor.connect('network-changed', () => {
+            if (!this._hasFullConnectivity())
+                return;
+            log('[solera-update] connectivity is now FULL, scheduling first check');
+            this._disconnectNetMonitor();
+            this._armFirstCheck();
+        });
+    }
+
+    // Pequeño margen para no agobiar el arranque (sesión, shell, dconf…).
+    _armFirstCheck() {
+        if (this._firstId)
+            return;
+        log(`[solera-update] first check in ${FIRST_CHECK_DELAY_SECONDS}s`);
+        this._firstId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT,
+            FIRST_CHECK_DELAY_SECONDS, () => {
+                this._firstId = 0;
+                this._indicator?.checkNow();
+                return GLib.SOURCE_REMOVE;
+            });
+    }
+
+    _disconnectNetMonitor() {
+        if (this._netChangedId) {
+            this._netMonitor.disconnect(this._netChangedId);
+            this._netChangedId = 0;
+        }
+    }
+
+    _cancelRetry() {
+        if (this._retryId) {
+            GLib.source_remove(this._retryId);
+            this._retryId = 0;
+        }
+    }
+
+    // Llamado por el indicador al terminar cada check(). Centraliza el
+    // reintento con backoff ante fallo de red.
+    _onCheckFinished(res) {
+        if (!this._indicator)
+            return; // extensión ya desactivada (check en vuelo)
+        if (res?.reachable) {
+            this._retryIndex = 0;
+            this._cancelRetry();
+            return;
+        }
+        this._cancelRetry();
+        const i = Math.min(this._retryIndex, RETRY_BACKOFF_SECONDS.length - 1);
+        const delay = RETRY_BACKOFF_SECONDS[i];
+        this._retryIndex = i + 1;
+        this._retryId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, delay, () => {
+            this._retryId = 0;
+            this._indicator?.checkNow();
+            return GLib.SOURCE_REMOVE;
+        });
+        log(`[solera-update] check failed (no network?), retrying in ${delay}s`);
+    }
+
     disable() {
+        this._disconnectNetMonitor();
+        this._netMonitor = null;
         if (this._firstId) {
             GLib.source_remove(this._firstId);
             this._firstId = 0;
         }
+        this._cancelRetry();
         if (this._periodId) {
             GLib.source_remove(this._periodId);
             this._periodId = 0;

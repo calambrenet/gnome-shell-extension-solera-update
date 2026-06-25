@@ -5,5 +5,5 @@
   "shell-version": ["48", "49", "50"],
   "url": "https://github.com/calambrenet/gnome-shell-extension-solera-update",
   "gettext-domain": "solera-update@soleralinux.org",
-  "version": 1
+  "version": 2
 }
